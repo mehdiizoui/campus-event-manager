@@ -1,9 +1,9 @@
 # Campus Event Manager
 
-Application web légère de gestion d'événements de campus, développée pour le projet **NoSQL Development Project – MCS DE1**.
+Application web légère de gestion d'événements de campus, développée pour le projet **NoSQL Development Project – MCS DE2**.
 Base de données **MongoDB**, backend **Node.js / Express**, templates **EJS + Bootstrap 5**.
 
-**Auteur :** emzoui
+**Auteur :** el mahdi zoui
 
 ---
 
