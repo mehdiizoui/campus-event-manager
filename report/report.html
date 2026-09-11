@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Campus Event Manager — Rapport technique</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #212529;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  h1 { font-size: 22pt; margin: 0 0 4px 0; color: #0d47a1; }
+  h2 {
+    font-size: 14pt; color: #0d47a1;
+    border-bottom: 2px solid #0d47a1;
+    padding-bottom: 3px;
+    margin-top: 22px; margin-bottom: 10px;
+  }
+  h3 { font-size: 11.5pt; color: #1565c0; margin-top: 14px; margin-bottom: 6px; }
+  p { margin: 4px 0 8px 0; }
+  ul, ol { margin: 4px 0 8px 18px; padding: 0; }
+  li { margin: 2px 0; }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9pt;
+    background: #f1f3f5;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    overflow: hidden;
+    white-space: pre-wrap;
+    page-break-inside: avoid;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 12px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #ced4da;
+    padding: 4px 6px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #e3f2fd; color: #0d47a1; }
+  .meta { color: #6c757d; margin-bottom: 12px; font-size: 10pt; }
+  .cover {
+    text-align: center;
+    padding: 60mm 0 30mm 0;
+    page-break-after: always;
+  }
+  .cover h1 { font-size: 32pt; margin-bottom: 10px; }
+  .cover .sub { font-size: 14pt; color: #1565c0; margin-bottom: 30px; }
+  .cover .info { font-size: 11pt; color: #495057; line-height: 1.8; }
+  .badge {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #0d47a1;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 9pt;
+    margin-right: 4px;
+  }
+  .callout {
+    background: #f1f8ff;
+    border-left: 3px solid #1565c0;
+    padding: 6px 10px;
+    margin: 8px 0;
+    font-size: 10pt;
+  }
+  h2, h3, table, pre { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ================== COVER PAGE ================== -->
+<section class="cover">
+  <h1>Campus Event Manager</h1>
+  <div class="sub">Rapport technique — Projet NoSQL Development</div>
+
+  <div class="info">
+    <strong>Cohorte :</strong> MCS DE1 · Master 1 Data Engineering &amp; Cloud Computing<br>
+    <strong>Auteur :</strong> ZOUI El Mahdi<br>
+    <strong>Base de données :</strong> MongoDB<br>
+    <strong>Stack :</strong> Node.js · Express · EJS · Bootstrap 5<br>
+    <strong>Date :</strong> 11 septembre 2026<br>
+  </div>
+</section>
+
+<!-- ================== 1. Overview ================== -->
+<h2>1. Vue d'ensemble du projet</h2>
+<p>
+  L'application <strong>Campus Event Manager</strong> permet à une université de gérer ses événements de campus
+  (workshops, talks, meetups, hackathons, activités étudiantes) et le suivi des inscriptions étudiantes.
+  L'objectif du projet est de démontrer la conception et l'exploitation d'une base
+  <strong>NoSQL orientée document</strong> avec MongoDB, incluant l'utilisation combinée d'embedding,
+  de références, de mise à jour de tableaux imbriqués et de pipelines d'agrégation.
+</p>
+<p>
+  <strong>Stack retenue :</strong> Node.js + Express + driver MongoDB officiel + EJS/Bootstrap.
+  Cette stack privilégie la rapidité d'exécution et l'accès direct à la syntaxe MongoDB
+  (les pipelines ne sont pas cachés derrière un ODM).
+</p>
+<p>
+  MongoDB est hébergé sur une VM Ubuntu (nom d'hôte <code>emzoui</code>) et joint via la variable
+  d'environnement <code>MONGODB_URI</code>. La base est nommée <code>campus_events</code>.
+</p>
+
+<!-- ================== 2. Data model ================== -->
+<h2>2. Modèle de données NoSQL</h2>
+
+<h3>2.1 Collection <code>users</code></h3>
+<pre>{
+  "_id": ObjectId,
+  "firstName": "Amine",
+  "lastName": "Zouiten",
+  "email": "amine.zouiten@campus.edu",
+  "department": "Data",
+  "role": "student",
+  "interests": ["nosql", "python", "ml"],
+  "createdAt": ISODate
+}</pre>
+<ul>
+  <li><code>interests</code> : tableau de strings.</li>
+  <li><code>email</code> : indexé unique.</li>
+  <li><code>role</code> : énumération contrôlée (<em>student, teacher, staff, admin</em>).</li>
+</ul>
+
+<h3>2.2 Collection <code>events</code></h3>
+<pre>{
+  "_id": ObjectId,
+  "title": "MongoDB Aggregation Workshop",
+  "description": "...",
+  "category": "Workshop",
+  "tags": ["nosql", "mongodb", "data"],
+  "startDate": ISODate,
+  "endDate":   ISODate,
+  "capacity": 25,
+  "location": {
+    "building": "Innovation Center",
+    "room": "B204",
+    "campus": "Paris"
+  },
+  "organizerId": ObjectId,
+  "registrations": [
+    { "userId": ObjectId, "registeredAt": ISODate, "status": "confirmed" }
+  ],
+  "createdAt": ISODate
+}</pre>
+<ul>
+  <li><code>location</code> : <strong>objet imbriqué (embedded)</strong>.</li>
+  <li><code>tags</code> : tableau de strings, indexé (multikey).</li>
+  <li><code>registrations</code> : <strong>tableau d'objets embedded</strong>.</li>
+  <li><code>organizerId</code>, <code>registrations.userId</code> : <strong>références</strong> vers <code>users._id</code>.</li>
+</ul>
+
+<h3>2.3 Indexes</h3>
+<table>
+  <thead><tr><th>Index</th><th>Type</th><th>Justification</th></tr></thead>
+  <tbody>
+    <tr><td><code>users.email</code></td><td>unique</td><td>Contrainte métier, recherche par email.</td></tr>
+    <tr><td><code>events.startDate</code></td><td>ascending</td><td>Tri du catalogue par date, dashboard "prochains events".</td></tr>
+    <tr><td><code>events.category</code></td><td>ascending</td><td>Filtre côté catalogue et pipeline "par catégorie".</td></tr>
+    <tr><td><code>events.tags</code></td><td>multikey</td><td>Filtre par tag.</td></tr>
+    <tr><td><code>events.registrations.userId</code></td><td>multikey</td><td>Recherche des events auxquels un user est inscrit.</td></tr>
+  </tbody>
+</table>
+
+<h3>2.4 Validation JSON-Schema</h3>
+<p>
+  Appliquée côté MongoDB (<code>$jsonSchema</code> dans <code>createCollection</code>) pour garantir :
+</p>
+<ul>
+  <li><code>title</code> non vide, <code>capacity ≥ 1</code>, dates typées, structure <code>location</code> complète ;</li>
+  <li><code>role</code> et <code>registrations.status</code> restreints à des valeurs contrôlées ;</li>
+  <li>email conforme à un pattern regex.</li>
+</ul>
+<p>
+  Une validation applicative complète la validation Mongo (messages d'erreur lisibles en UI),
+  et vérifie notamment que <code>endDate ≥ startDate</code> avant chaque insert/update.
+</p>
+
+<!-- ================== 3. Modeling ================== -->
+<h2>3. Choix de modélisation : embedding vs referencing</h2>
+
+<h3>3.1 Les inscriptions sont <em>embedded</em> dans <code>events.registrations</code></h3>
+<p>
+  Chaque event a un nombre borné de participants (quelques dizaines à ~200 max), et les inscriptions
+  sont <strong>toujours lues avec l'event</strong> (page détail, dashboard). Un tableau embedded permet
+  des mises à jour atomiques via <code>$push</code>/<code>$pull</code>/<code>$</code> positional et un
+  accès à <code>$size</code> sans join. Une collection séparée aurait multiplié les requêtes sans bénéfice.
+</p>
+
+<h3>3.2 L'organisateur et les utilisateurs sont référencés par <code>ObjectId</code></h3>
+<p>
+  Un utilisateur peut être organisateur ou participant de nombreux events ; ses données (email,
+  département...) doivent rester cohérentes en un seul endroit. Dupliquer les infos dans chaque event
+  aurait conduit à une dénormalisation coûteuse à maintenir. Le prix payé — un <code>$lookup</code> ou
+  un <code>find({_id: {$in:[...]}})</code> — reste faible car les volumes sont raisonnables et les
+  indexes couvrent la jointure.
+</p>
+
+<!-- ================== 4. Architecture ================== -->
+<h2>4. Architecture de l'application</h2>
+<pre>src/
+├── app.js                # bootstrap Express + EJS + method-override
+├── db.js                 # singleton MongoClient (driver v6)
+├── routes/               # handlers HTTP par domaine
+│   ├── dashboard.js
+│   ├── events.js
+│   ├── users.js
+│   └── analytics.js
+├── repositories/         # TOUTES les opérations MongoDB
+│   ├── events.js         # CRUD + agrégations + registrations
+│   ├── users.js          # CRUD + $lookup + users sans inscription
+│   └── analytics.js      # pipelines A..F
+├── views/                # templates EJS (5 pages)
+└── public/css/style.css</pre>
+<p>
+  La séparation <strong>routes ↔ repositories</strong> rend les requêtes et pipelines MongoDB
+  immédiatement identifiables dans le code, comme demandé dans le brief.
+</p>
+
+<!-- ================== 5. Pages ================== -->
+<h2>5. Pages de l'application</h2>
+<table>
+  <thead><tr><th>Page</th><th>Route</th><th>Fonctions clés (côté MongoDB)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Dashboard</strong></td>
+      <td><code>/</code></td>
+      <td><code>countDocuments</code>, <code>find + sort + limit</code>, agrégation <code>$unwind + $match + $group</code> pour le total confirmé, <code>$filter + $size</code> pour le plus populaire.</td>
+    </tr>
+    <tr>
+      <td><strong>Events</strong></td>
+      <td><code>/events</code></td>
+      <td>CRUD complet (<code>insertOne</code>, <code>updateOne</code>, <code>deleteOne</code>), filtres via <code>$regex</code>, <code>$gte/$lt</code>, tag array, tri, projection.</td>
+    </tr>
+    <tr>
+      <td><strong>Détail event</strong></td>
+      <td><code>/events/:id</code></td>
+      <td><code>$push</code> (nouvelle inscription), positional <code>$</code> (<code>$set</code> sur <code>registrations.$.status</code>) pour annuler, <code>$pull</code> pour retirer, contrôle capacité + anti-doublon.</td>
+    </tr>
+    <tr>
+      <td><strong>Users</strong></td>
+      <td><code>/users</code></td>
+      <td>CRUD, <code>$lookup</code> avec pipeline pour compter les inscriptions par user, refus de suppression si références.</td>
+    </tr>
+    <tr>
+      <td><strong>Analytics</strong></td>
+      <td><code>/analytics</code></td>
+      <td>6 pipelines d'agrégation (voir §6).</td>
+    </tr>
+  </tbody>
+</table>
+<div class="callout">
+  Insérer ici les captures d'écran des 5 pages (une par page) après avoir lancé l'application.
+</div>
+
+<!-- ================== 6. Pipelines ================== -->
+<h2>6. Focus sur deux pipelines d'agrégation</h2>
+
+<h3>6.1 Analyse D — Events au-dessus de l'occupation moyenne</h3>
+<p>
+  Fichier : <code>repositories/analytics.js</code>, fonction <code>eventsAboveAverageOccupancy</code>.
+  Ce pipeline illustre le calcul d'une moyenne globale puis un filtrage individuel :
+</p>
+<ol>
+  <li><code>$project</code> : calcule pour chaque event le nombre d'inscriptions confirmées via <code>$filter + $size</code>.</li>
+  <li><code>$addFields</code> : calcule le pourcentage d'occupation <code>confirmed / capacity × 100</code>
+      (avec <code>$cond</code> pour éviter la division par zéro).</li>
+  <li><code>$group _id: null</code> : agrège tous les events pour calculer la moyenne
+      globale <code>avg</code> et pousse chaque document dans un tableau <code>items</code>.</li>
+  <li><code>$unwind</code> + <code>$replaceRoot</code> + <code>$mergeObjects</code> : ré-étale
+      les documents et injecte la moyenne globale <code>overallAverage</code> dans chacun.</li>
+  <li><code>$match: { $expr: { $gt: ["$occupancy", "$overallAverage"] } }</code> : ne conserve que
+      les events dont l'occupation dépasse la moyenne.</li>
+  <li><code>$sort</code> : tri par occupation décroissante.</li>
+</ol>
+<p>
+  Ce pipeline combine 6 stages et démontre l'usage de champs calculés (<code>$cond</code>, <code>$divide</code>,
+  <code>$multiply</code>) et d'un <code>$expr</code> pour référencer un champ calculé dans un <code>$match</code>.
+</p>
+
+<h3>6.2 Analyse C — Utilisateurs sans inscription</h3>
+<p>
+  Fichier : <code>repositories/users.js</code>, fonction <code>usersWithNoRegistration</code>.
+  Ce pipeline utilise un <code>$lookup</code> corrélé pour identifier les utilisateurs jamais inscrits :
+</p>
+<ol>
+  <li><code>$lookup</code> avec <code>let: { uid: '$_id' }</code> et un sous-pipeline qui filtre les
+      events dont le tableau <code>registrations.userId</code> contient <code>$$uid</code> ; <code>$limit: 1</code>
+      pour arrêter dès qu'un event est trouvé.</li>
+  <li><code>$match: { refs: { $size: 0 } }</code> : conserve uniquement les utilisateurs pour lesquels le
+      résultat du <code>$lookup</code> est vide.</li>
+  <li><code>$sort</code> : tri alphabétique.</li>
+</ol>
+<p>
+  L'usage du sous-pipeline dans <code>$lookup</code> évite de récupérer l'ensemble des events et
+  permet à MongoDB d'exploiter l'index <code>events.registrations.userId</code>.
+</p>
+
+<!-- ================== 7. Errors ================== -->
+<h2>7. Cohérence et gestion d'erreurs</h2>
+<ul>
+  <li>Email en doublon → erreur <code>11000</code> transformée en HTTP 409.</li>
+  <li>Capacité ≤ 0 ou invalide → HTTP 400 avec message clair.</li>
+  <li>Date de fin &lt; date de début → HTTP 400.</li>
+  <li>Event ou utilisateur introuvable → HTTP 404.</li>
+  <li>Inscription en double sur un event → HTTP 409.</li>
+  <li>Event complet : l'inscription bascule automatiquement en statut <code>waiting</code>.</li>
+  <li>Identifiant malformé → HTTP 400 via <code>ObjectId.isValid</code>.</li>
+  <li>Suppression d'un user encore référencé (organizer ou registration) : bloquée avec message.</li>
+</ul>
+
+<!-- ================== 8. Conclusion ================== -->
+<h2>8. Conclusion</h2>
+
+<h3>Difficultés rencontrées</h3>
+<ul>
+  <li>Trouver le bon équilibre entre embedding (rapidité de lecture, atomicité) et referencing
+      (cohérence) sur les inscriptions.</li>
+  <li>Écrire un pipeline lisible pour l'analyse D : injecter une moyenne globale dans chaque document
+      sans passer par deux requêtes séparées.</li>
+</ul>
+
+<h3>Limitations</h3>
+<ul>
+  <li>Pas d'authentification : l'utilisateur "connecté" est simulé via la sélection d'un user dans
+      les formulaires d'inscription.</li>
+  <li>Pas de pagination : le volume de données est faible (18 events), inutile pour ce périmètre.</li>
+</ul>
+
+<h3>Améliorations possibles</h3>
+<ul>
+  <li>Ajouter un <code>changeStream</code> pour rafraîchir le dashboard en temps réel.</li>
+  <li>Précalculer les statistiques du dashboard dans un job planifié + cache Redis pour un service
+      à plus grand volume.</li>
+  <li>Ajouter un module d'authentification (Passport) pour restreindre le CRUD aux organisateurs.</li>
+</ul>
+
+</body>
+</html>

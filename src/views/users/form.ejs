@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+<h1><%= user && user._id ? 'Modifier utilisateur' : 'Nouvel utilisateur' %></h1>
+
+<% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+
+<% function val(f, d) { return (user && user[f] !== undefined) ? user[f] : (d || ''); } %>
+
+<form method="post" action="<%= user && user._id ? '/users/' + user._id + '?_method=PUT' : '/users' %>" class="bg-white p-4 rounded shadow-sm">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Prénom *</label>
+      <input name="firstName" class="form-control" required value="<%= val('firstName') %>">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Nom *</label>
+      <input name="lastName" class="form-control" required value="<%= val('lastName') %>">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Email *</label>
+      <input type="email" name="email" class="form-control" required value="<%= val('email') %>">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Département *</label>
+      <input name="department" class="form-control" required value="<%= val('department') %>">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Rôle *</label>
+      <select name="role" class="form-select">
+        <% ['student','teacher','staff','admin'].forEach(function(r) { %>
+          <option value="<%= r %>" <%= val('role') === r ? 'selected' : '' %>><%= r %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Intérêts (séparés par virgule)</label>
+      <input name="interests" class="form-control"
+             value="<%= user && user.interests ? (Array.isArray(user.interests) ? user.interests.join(', ') : user.interests) : '' %>">
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button class="btn btn-primary">Enregistrer</button>
+    <a href="/users" class="btn btn-outline-secondary">Annuler</a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

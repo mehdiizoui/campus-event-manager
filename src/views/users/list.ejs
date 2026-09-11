@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Users</h1>
+  <a href="/users/new" class="btn btn-primary">+ Nouvel utilisateur</a>
+</div>
+
+<form class="row g-2 mb-3 bg-white p-3 rounded shadow-sm">
+  <div class="col-md-4">
+    <input name="q" class="form-control" placeholder="Nom ou email" value="<%= filters.q %>">
+  </div>
+  <div class="col-md-3">
+    <select name="department" class="form-select">
+      <option value="">Tous départements</option>
+      <% departments.forEach(function(d) { %>
+        <option value="<%= d %>" <%= filters.department === d ? 'selected' : '' %>><%= d %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <select name="role" class="form-select">
+      <option value="">Tous rôles</option>
+      <% roles.forEach(function(r) { %>
+        <option value="<%= r %>" <%= filters.role === r ? 'selected' : '' %>><%= r %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-primary w-100">Filtrer</button></div>
+</form>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover mb-0">
+    <thead class="table-light">
+      <tr><th>Nom</th><th>Email</th><th>Département</th><th>Rôle</th><th>Intérêts</th><th>Inscriptions</th></tr>
+    </thead>
+    <tbody>
+      <% users.forEach(function(u) { %>
+        <tr>
+          <td><a href="/users/<%= u._id %>"><%= u.firstName %> <%= u.lastName %></a></td>
+          <td><%= u.email %></td>
+          <td><%= u.department %></td>
+          <td><span class="badge bg-secondary"><%= u.role %></span></td>
+          <td class="small">
+            <% (u.interests || []).forEach(function(i) { %><span class="badge badge-tag"><%= i %></span><% }) %>
+          </td>
+          <td><%= u.registrationCount %></td>
+        </tr>
+      <% }) %>
+      <% if (users.length === 0) { %><tr><td colspan="6" class="text-muted text-center py-4">Aucun utilisateur.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>

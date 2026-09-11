@@ -1,0 +1,11 @@
+<%- include('partials/header') %>
+<div class="alert alert-danger">
+  <h4><%= title %></h4>
+  <p><%= message %></p>
+  <% if (typeof backTo !== 'undefined' && backTo) { %>
+    <a href="<%= backTo %>" class="btn btn-outline-danger btn-sm">Retour</a>
+  <% } else { %>
+    <a href="/" class="btn btn-outline-danger btn-sm">Accueil</a>
+  <% } %>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,63 @@
+<%- include('partials/header') %>
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card card-kpi p-3">
+      <div class="text-muted small">Utilisateurs</div>
+      <div class="number"><%= stats.usersCount %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-kpi p-3">
+      <div class="text-muted small">Events</div>
+      <div class="number"><%= stats.eventsCount %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-kpi p-3">
+      <div class="text-muted small">Events à venir</div>
+      <div class="number"><%= stats.upcomingCount %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-kpi p-3">
+      <div class="text-muted small">Inscriptions confirmées</div>
+      <div class="number"><%= stats.totalConfirmed %></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <h4 class="section-title">Les 5 prochains events</h4>
+    <table class="table table-hover bg-white">
+      <thead><tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Lieu</th></tr></thead>
+      <tbody>
+        <% next5.forEach(function(e) { %>
+          <tr>
+            <td><a href="/events/<%= e._id %>"><%= e.title %></a></td>
+            <td><span class="badge bg-secondary"><%= e.category %></span></td>
+            <td><%= e.startDate.toLocaleString('fr-FR') %></td>
+            <td><%= e.location.building %> / <%= e.location.room %></td>
+          </tr>
+        <% }) %>
+        <% if (next5.length === 0) { %><tr><td colspan="4" class="text-muted">Aucun event à venir.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col-lg-4">
+    <h4 class="section-title">Event le plus populaire</h4>
+    <% if (top) { %>
+      <div class="card p-3">
+        <div class="fw-bold"><a href="/events/<%= top._id %>"><%= top.title %></a></div>
+        <div class="text-muted small mb-2"><%= top.category %></div>
+        <div>Inscriptions confirmées : <strong><%= top.confirmed %></strong> / <%= top.capacity %></div>
+      </div>
+    <% } else { %>
+      <p class="text-muted">Aucun event.</p>
+    <% } %>
+  </div>
+</div>
+<%- include('partials/footer') %>

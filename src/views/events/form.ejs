@@ -1,0 +1,85 @@
+<%- include('../partials/header') %>
+<h1><%= event ? 'Modifier event' : 'Nouvel event' %></h1>
+
+<% if (error) { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<%
+function val(field, def) {
+  if (event && field.indexOf('.') > -1) {
+    const [a, b] = field.split('.');
+    return (event[a] && event[a][b] !== undefined) ? event[a][b] : (def || '');
+  }
+  return (event && event[field] !== undefined) ? event[field] : (def || '');
+}
+function toInput(v) {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString().slice(0,16);
+  return v;
+}
+%>
+
+<form method="post" action="<%= event && event._id ? '/events/' + event._id + '?_method=PUT' : '/events' %>" class="bg-white p-4 rounded shadow-sm">
+  <div class="row g-3">
+    <div class="col-md-8">
+      <label class="form-label">Titre *</label>
+      <input name="title" class="form-control" required value="<%= val('title') %>">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Catégorie *</label>
+      <input name="category" class="form-control" required value="<%= val('category', 'Workshop') %>">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="3"><%= val('description') %></textarea>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Tags (séparés par virgule)</label>
+      <input name="tags" class="form-control"
+             value="<%= event && event.tags ? (Array.isArray(event.tags) ? event.tags.join(', ') : event.tags) : '' %>">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Capacité *</label>
+      <input name="capacity" type="number" min="1" class="form-control" required value="<%= val('capacity', 20) %>">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Organisateur *</label>
+      <select name="organizerId" class="form-select" required>
+        <% users.forEach(function(u) { %>
+          <option value="<%= u._id %>" <%= event && String(event.organizerId) === String(u._id) ? 'selected' : '' %>>
+            <%= u.firstName %> <%= u.lastName %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Date début *</label>
+      <input type="datetime-local" name="startDate" class="form-control" required value="<%= toInput(val('startDate')) %>">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Date fin *</label>
+      <input type="datetime-local" name="endDate" class="form-control" required value="<%= toInput(val('endDate')) %>">
+    </div>
+
+    <div class="col-12"><hr><h5>Lieu (embedded)</h5></div>
+    <div class="col-md-4">
+      <label class="form-label">Bâtiment</label>
+      <input name="building" class="form-control" value="<%= val('location.building') %>">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Salle</label>
+      <input name="room" class="form-control" value="<%= val('location.room') %>">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Campus</label>
+      <input name="campus" class="form-control" value="<%= val('location.campus', 'Paris') %>">
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button class="btn btn-primary">Enregistrer</button>
+    <a href="/events" class="btn btn-outline-secondary">Annuler</a>
+  </div>
+</form>
+<%- include('../partials/footer') %>

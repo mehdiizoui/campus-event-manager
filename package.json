@@ -1,0 +1,23 @@
+{
+  "name": "campus-event-manager",
+  "version": "1.0.0",
+  "description": "Campus Event Manager - NoSQL MongoDB project (MCS DE1)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "db:init": "node database/init.js",
+    "db:seed": "node database/seed.js",
+    "db:setup": "npm run db:init && npm run db:seed"
+  },
+  "keywords": ["mongodb", "nosql", "express", "campus", "events"],
+  "author": "emzoui",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "method-override": "^3.0.0",
+    "mongodb": "^6.8.0"
+  }
+}

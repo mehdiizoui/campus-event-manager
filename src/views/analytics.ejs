@@ -1,0 +1,81 @@
+<%- include('partials/header') %>
+<h1 class="mb-3">Analytics</h1>
+<p class="text-muted">Indicateurs calculés par des pipelines d'agrégation MongoDB.</p>
+
+<h4 class="section-title">A · Inscriptions par catégorie</h4>
+<table class="table bg-white">
+  <thead><tr><th>Catégorie</th><th>Nombre d'events</th><th>Inscriptions confirmées</th></tr></thead>
+  <tbody>
+    <% byCategory.forEach(function(r) { %>
+      <tr><td><%= r.category %></td><td><%= r.eventCount %></td><td><%= r.totalConfirmed %></td></tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<h4 class="section-title">B · Top 5 events</h4>
+<table class="table bg-white">
+  <thead><tr><th>Titre</th><th>Catégorie</th><th>Capacité</th><th>Confirmées</th><th>Occupation</th></tr></thead>
+  <tbody>
+    <% top.forEach(function(r) { %>
+      <tr>
+        <td><a href="/events/<%= r._id %>"><%= r.title %></a></td>
+        <td><%= r.category %></td>
+        <td><%= r.capacity %></td>
+        <td><%= r.confirmed %></td>
+        <td><%= Math.round(r.occupancy) %>%</td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<h4 class="section-title">C · Utilisateurs sans inscription</h4>
+<% if (noReg.length === 0) { %>
+  <p class="text-muted">Tous les utilisateurs sont inscrits à au moins un event.</p>
+<% } else { %>
+<table class="table bg-white">
+  <thead><tr><th>Nom</th><th>Email</th><th>Département</th></tr></thead>
+  <tbody>
+    <% noReg.forEach(function(u) { %>
+      <tr>
+        <td><a href="/users/<%= u._id %>"><%= u.firstName %> <%= u.lastName %></a></td>
+        <td><%= u.email %></td>
+        <td><%= u.department %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+
+<h4 class="section-title">D · Events au-dessus de l'occupation moyenne</h4>
+<p class="text-muted small">Moyenne globale : <strong><%= Math.round(overallAvg) %>%</strong></p>
+<table class="table bg-white">
+  <thead><tr><th>Titre</th><th>Catégorie</th><th>Confirmées / Capacité</th><th>Occupation</th></tr></thead>
+  <tbody>
+    <% aboveAvg.forEach(function(r) { %>
+      <tr>
+        <td><a href="/events/<%= r._id %>"><%= r.title %></a></td>
+        <td><%= r.category %></td>
+        <td><%= r.confirmed %> / <%= r.capacity %></td>
+        <td><%= Math.round(r.occupancy) %>%</td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<h4 class="section-title">E · Tags les plus utilisés</h4>
+<div>
+  <% tags.forEach(function(t) { %>
+    <span class="badge badge-tag me-1 mb-1" style="font-size:.95rem"><%= t.tag %> · <%= t.count %></span>
+  <% }) %>
+</div>
+
+<h4 class="section-title mt-4">F · Events par mois</h4>
+<table class="table bg-white">
+  <thead><tr><th>Mois</th><th>Nombre d'events</th><th>Inscriptions confirmées</th></tr></thead>
+  <tbody>
+    <% byMonth.forEach(function(r) { %>
+      <tr><td><%= String(r.month).padStart(2,'0') %> / <%= r.year %></td><td><%= r.eventCount %></td><td><%= r.totalConfirmed %></td></tr>
+    <% }) %>
+  </tbody>
+</table>
+<%- include('partials/footer') %>

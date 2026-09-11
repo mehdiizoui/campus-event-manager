@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="mb-1"><%= user.firstName %> <%= user.lastName %></h1>
+    <div class="text-muted"><%= user.email %> · <%= user.department %> · <span class="badge bg-secondary"><%= user.role %></span></div>
+    <div class="mt-2">
+      <% (user.interests || []).forEach(function(i) { %><span class="badge badge-tag"><%= i %></span><% }) %>
+    </div>
+  </div>
+  <div>
+    <a href="/users/<%= user._id %>/edit" class="btn btn-outline-secondary">Éditer</a>
+    <form method="post" action="/users/<%= user._id %>?_method=DELETE" class="d-inline"
+          onsubmit="return confirm('Supprimer cet utilisateur ?')">
+      <button class="btn btn-outline-danger">Supprimer</button>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6"><div class="card p-3"><div class="text-muted small">Inscriptions à venir</div><div class="number"><%= upcoming %></div></div></div>
+  <div class="col-md-6"><div class="card p-3"><div class="text-muted small">Inscriptions passées</div><div class="number"><%= past %></div></div></div>
+</div>
+
+<h4 class="section-title">Historique des inscriptions</h4>
+<table class="table bg-white">
+  <thead><tr><th>Event</th><th>Catégorie</th><th>Date</th><th>Statut</th></tr></thead>
+  <tbody>
+    <% events.forEach(function(e) { %>
+      <tr>
+        <td><a href="/events/<%= e._id %>"><%= e.title %></a></td>
+        <td><span class="badge bg-secondary"><%= e.category %></span></td>
+        <td><%= e.startDate.toLocaleString('fr-FR') %></td>
+        <td>
+          <% var s = e.myRegistration ? e.myRegistration.status : '—'; %>
+          <% if (s === 'confirmed') { %><span class="badge bg-success">confirmed</span>
+          <% } else if (s === 'waiting') { %><span class="badge bg-warning text-dark">waiting</span>
+          <% } else if (s === 'cancelled') { %><span class="badge bg-secondary">cancelled</span>
+          <% } else { %>—<% } %>
+        </td>
+      </tr>
+    <% }) %>
+    <% if (events.length === 0) { %>
+      <tr><td colspan="4" class="text-muted text-center py-3">Aucune inscription.</td></tr>
+    <% } %>
+  </tbody>
+</table>
+
+<a href="/users" class="btn btn-outline-secondary">← Retour</a>
+<%- include('../partials/footer') %>

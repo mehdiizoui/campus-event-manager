@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1>Events</h1>
+  <a href="/events/new" class="btn btn-primary">+ Nouvel event</a>
+</div>
+
+<form class="row g-2 mb-3 bg-white p-3 rounded shadow-sm">
+  <div class="col-md-3">
+    <input name="q" class="form-control" placeholder="Recherche par titre" value="<%= filters.q %>">
+  </div>
+  <div class="col-md-2">
+    <select name="category" class="form-select">
+      <option value="">Toutes catégories</option>
+      <% categories.forEach(function(c) { %>
+        <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="when" class="form-select">
+      <option value="">Toutes dates</option>
+      <option value="upcoming" <%= filters.when === 'upcoming' ? 'selected' : '' %>>À venir</option>
+      <option value="past" <%= filters.when === 'past' ? 'selected' : '' %>>Passés</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="tag" class="form-select">
+      <option value="">Tous tags</option>
+      <% tags.forEach(function(t) { %>
+        <option value="<%= t %>" <%= filters.tag === t ? 'selected' : '' %>><%= t %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="sort" class="form-select">
+      <option value="asc"  <%= filters.sort === 'asc'  ? 'selected' : '' %>>Date ↑</option>
+      <option value="desc" <%= filters.sort === 'desc' ? 'selected' : '' %>>Date ↓</option>
+    </select>
+  </div>
+  <div class="col-md-1"><button class="btn btn-outline-primary w-100">Filtrer</button></div>
+</form>
+
+<div class="table-responsive bg-white rounded shadow-sm">
+  <table class="table table-hover table-events mb-0">
+    <thead class="table-light">
+      <tr><th>Titre</th><th>Catégorie</th><th>Date</th><th>Lieu</th><th>Capacité</th><th>Inscrits</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% events.forEach(function(e) { const c = confirmedCount(e); const full = c >= e.capacity; %>
+        <tr>
+          <td>
+            <a href="/events/<%= e._id %>" class="fw-bold"><%= e.title %></a>
+            <% if (full) { %><span class="badge badge-full ms-2">FULL</span><% } %>
+            <div class="small">
+              <% (e.tags || []).forEach(function(t) { %><span class="badge badge-tag"><%= t %></span><% }) %>
+            </div>
+          </td>
+          <td><span class="badge bg-secondary"><%= e.category %></span></td>
+          <td><%= e.startDate.toLocaleString('fr-FR') %></td>
+          <td><%= e.location.building %> / <%= e.location.room %></td>
+          <td><%= e.capacity %></td>
+          <td><%= c %></td>
+          <td class="text-end">
+            <a href="/events/<%= e._id %>/edit" class="btn btn-sm btn-outline-secondary">Éditer</a>
+            <form method="post" action="/events/<%= e._id %>?_method=DELETE" class="d-inline"
+                  onsubmit="return confirm('Supprimer cet event ?')">
+              <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (events.length === 0) { %><tr><td colspan="7" class="text-muted text-center py-4">Aucun event trouvé.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>
