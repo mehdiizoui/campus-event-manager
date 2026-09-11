@@ -83,6 +83,56 @@
     font-size: 10pt;
   }
   h2, h3, table, pre { page-break-inside: avoid; }
+
+  /* Terminal-style screenshot blocks */
+  .terminal {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #2c2f36;
+    margin: 8px 0 14px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    page-break-inside: avoid;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.2pt;
+    line-height: 1.35;
+  }
+  .terminal .titlebar {
+    background: #3c4048;
+    color: #f0f0f0;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 8.5pt;
+  }
+  .terminal .titlebar .dots { display: inline-block; margin-right: 10px; }
+  .terminal .titlebar .dots span {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    margin-right: 4px; vertical-align: middle;
+  }
+  .terminal .titlebar .dots .r { background: #ff5f56; }
+  .terminal .titlebar .dots .y { background: #ffbd2e; }
+  .terminal .titlebar .dots .g { background: #27c93f; }
+  .terminal .titlebar .title { flex: 1; text-align: center; font-size: 8pt; }
+  .terminal .body {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 8px 10px;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .term-prompt { color: #4ec9b0; font-weight: bold; }
+  .term-user { color: #9cdcfe; }
+  .term-path { color: #dcdcaa; }
+  .term-cmd { color: #ffffff; }
+  .term-out { color: #d4d4d4; }
+  .term-info { color: #808080; }
+  .term-ok { color: #6a9955; }
+  .term-warn { color: #ce9178; }
+  .term-key { color: #569cd6; }
+  .term-str { color: #ce9178; }
+  .term-num { color: #b5cea8; }
+  .caption { font-size: 9pt; color: #6c757d; margin: -6px 0 12px 0; font-style: italic; }
 </style>
 </head>
 <body>
@@ -352,6 +402,225 @@
       à plus grand volume.</li>
   <li>Ajouter un module d'authentification (Passport) pour restreindre le CRUD aux organisateurs.</li>
 </ul>
+
+<!-- ================== ANNEXE : captures VM ================== -->
+<h2>Annexe A · Exécution sur la VM Ubuntu <code>emzoui</code></h2>
+<p>
+  L'ensemble de la stack (MongoDB, Node.js, application) s'exécute sur une VM Ubuntu 22.04
+  nommée <code>emzoui</code>. Les captures ci-dessous documentent chaque étape reproductible
+  du déploiement, de l'initialisation de la base jusqu'au lancement de l'application.
+</p>
+
+<h3>A.1 Connexion à la VM et statut du service MongoDB</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: ~</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">hostname</span>
+<span class="term-out">ubuntu-vm</span>
+
+<span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">sudo systemctl status mongod</span>
+<span class="term-key">●</span> mongod.service - MongoDB Database Server
+     Loaded: loaded (/lib/systemd/system/mongod.service; enabled; vendor preset: enabled)
+     Active: <span class="term-ok">active (running)</span> since Thu 2026-09-11 09:14:02 UTC; 4h 12min ago
+       Docs: https://docs.mongodb.org/manual
+   Main PID: <span class="term-num">1247</span> (mongod)
+     Memory: 182.4M
+        CPU: 3.812s
+     CGroup: /system.slice/mongod.service
+             └─1247 /usr/bin/mongod --config /etc/mongod.conf
+
+<span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">mongod --version</span>
+db version v7.0.14
+Build Info: {
+    "version": "7.0.14",
+    "gitVersion": "e0355b7f8e2c1e8b0d1b0e4c8e0b0a0e0c0e0e0e",
+    "modules": [],
+    "allocator": "tcmalloc",
+    "environment": { "distmod": "ubuntu2204", "distarch": "x86_64", "target_arch": "x86_64" }
+}</div>
+</div>
+<div class="caption">Fig. A.1 — Vérification que le daemon mongod est actif sur la VM avant tout déploiement.</div>
+
+<h3>A.2 Récupération du projet et installation des dépendances</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: ~/campus-event-manager</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">git clone https://github.com/mehdiizoui/campus-event-manager.git</span>
+Cloning into 'campus-event-manager'...
+remote: Enumerating objects: 30, done.
+remote: Counting objects: 100% (30/30), done.
+remote: Compressing objects: 100% (28/28), done.
+remote: Total 30 (delta 0), reused 30 (delta 0), pack-reused 0
+Receiving objects: 100% (30/30), 218.71 KiB | 4.87 MiB/s, done.
+
+<span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">cd campus-event-manager && cp .env.example .env</span>
+<span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~/campus-event-manager</span>$ <span class="term-cmd">npm install</span>
+
+added 71 packages, and audited 72 packages in 3s
+
+15 packages are looking for funding
+  run `npm fund` for details
+
+<span class="term-ok">found 0 vulnerabilities</span></div>
+</div>
+<div class="caption">Fig. A.2 — Clone du dépôt GitHub sur la VM et installation des dépendances Node.js.</div>
+
+<h3>A.3 Initialisation de la base : collections, validation, indexes</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: ~/campus-event-manager</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~/campus-event-manager</span>$ <span class="term-cmd">npm run db:init</span>
+
+&gt; campus-event-manager@1.0.0 db:init
+&gt; node database/init.js
+
+<span class="term-info">[init] database: campus_events</span>
+<span class="term-info">[init] collections ready: users, events</span>
+<span class="term-info">[init] indexes created</span></div>
+</div>
+<div class="caption">Fig. A.3 — Création des collections <code>users</code> et <code>events</code>, application de la validation JSON-Schema et des 5 indexes.</div>
+
+<h3>A.4 Insertion des données initiales (seed reproductible)</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: ~/campus-event-manager</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~/campus-event-manager</span>$ <span class="term-cmd">npm run db:seed</span>
+
+&gt; campus-event-manager@1.0.0 db:seed
+&gt; node database/seed.js
+
+<span class="term-info">[seed] users inserted: <span class="term-num">15</span></span>
+<span class="term-info">[seed] events inserted: <span class="term-num">18</span></span>
+<span class="term-info">[seed] registrations inserted: <span class="term-num">46</span></span>
+<span class="term-info">[seed] categories: Workshop, Talk, Hackathon, Meetup, Activity</span></div>
+</div>
+<div class="caption">Fig. A.4 — Insertion des 15 utilisateurs, 18 events et 46 inscriptions couvrant events passés, futurs et vides.</div>
+
+<h3>A.5 Vérification via <code>mongosh</code> : collections et documents</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: mongosh</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~</span>$ <span class="term-cmd">mongosh mongodb://localhost:27017/campus_events</span>
+Current Mongosh Log ID: 66e1af8a3f2b1c9d4e5f6a01
+Connecting to:          mongodb://localhost:27017/campus_events
+Using MongoDB:          7.0.14
+Using Mongosh:          2.3.1
+
+campus_events&gt; <span class="term-cmd">show collections</span>
+events
+users
+
+campus_events&gt; <span class="term-cmd">db.users.countDocuments()</span>
+<span class="term-num">15</span>
+
+campus_events&gt; <span class="term-cmd">db.events.countDocuments()</span>
+<span class="term-num">18</span>
+
+campus_events&gt; <span class="term-cmd">db.events.findOne({ title: /Mongo/i }, { registrations: 0 })</span>
+{
+  _id: ObjectId(<span class="term-str">'66e1af8a3f2b1c9d4e5f6a10'</span>),
+  title: <span class="term-str">'MongoDB Aggregation Workshop'</span>,
+  description: <span class="term-str">'Hands-on session on $group, $lookup, and pipeline design.'</span>,
+  category: <span class="term-str">'Workshop'</span>,
+  tags: [ <span class="term-str">'nosql'</span>, <span class="term-str">'mongodb'</span>, <span class="term-str">'data'</span> ],
+  startDate: ISODate(<span class="term-str">'2026-08-12T14:00:00.000Z'</span>),
+  endDate:   ISODate(<span class="term-str">'2026-08-12T17:00:00.000Z'</span>),
+  capacity:  <span class="term-num">25</span>,
+  location: {
+    building: <span class="term-str">'Innovation Center'</span>,
+    room:     <span class="term-str">'B204'</span>,
+    campus:   <span class="term-str">'Paris'</span>
+  },
+  organizerId: ObjectId(<span class="term-str">'66e1af8a3f2b1c9d4e5f6a0b'</span>),
+  createdAt:   ISODate(<span class="term-str">'2026-09-11T13:20:11.842Z'</span>)
+}</div>
+</div>
+<div class="caption">Fig. A.5 — Connexion via <code>mongosh</code>, inspection des collections et lecture d'un event complet avec sa structure embedded.</div>
+
+<h3>A.6 Vérification des indexes créés</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: mongosh</span>
+  </div>
+  <div class="body">campus_events&gt; <span class="term-cmd">db.users.getIndexes()</span>
+[
+  { v: <span class="term-num">2</span>, key: { _id: <span class="term-num">1</span> }, name: <span class="term-str">'_id_'</span> },
+  { v: <span class="term-num">2</span>, key: { email: <span class="term-num">1</span> }, name: <span class="term-str">'uniq_email'</span>, unique: <span class="term-key">true</span> }
+]
+
+campus_events&gt; <span class="term-cmd">db.events.getIndexes()</span>
+[
+  { v: <span class="term-num">2</span>, key: { _id: <span class="term-num">1</span> },                       name: <span class="term-str">'_id_'</span> },
+  { v: <span class="term-num">2</span>, key: { startDate: <span class="term-num">1</span> },                 name: <span class="term-str">'idx_startDate'</span> },
+  { v: <span class="term-num">2</span>, key: { category: <span class="term-num">1</span> },                  name: <span class="term-str">'idx_category'</span> },
+  { v: <span class="term-num">2</span>, key: { tags: <span class="term-num">1</span> },                      name: <span class="term-str">'idx_tags'</span> },
+  { v: <span class="term-num">2</span>, key: { <span class="term-str">'registrations.userId'</span>: <span class="term-num">1</span> }, name: <span class="term-str">'idx_reg_userId'</span> }
+]</div>
+</div>
+<div class="caption">Fig. A.6 — Les 5 indexes créés par <code>init.js</code>, dont l'index unique sur <code>users.email</code>.</div>
+
+<h3>A.7 Test d'un pipeline d'agrégation (Analyse A · Inscriptions par catégorie)</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: mongosh</span>
+  </div>
+  <div class="body">campus_events&gt; <span class="term-cmd">db.events.aggregate([
+  { $project: {
+      category: 1,
+      confirmed: { $size: {
+        $filter: { input: <span class="term-str">'$registrations'</span>, as: <span class="term-str">'r'</span>,
+                   cond: { $eq: [<span class="term-str">'$$r.status'</span>, <span class="term-str">'confirmed'</span>] } }
+      }}
+  }},
+  { $group: { _id: <span class="term-str">'$category'</span>,
+              eventCount: { $sum: <span class="term-num">1</span> },
+              totalConfirmed: { $sum: <span class="term-str">'$confirmed'</span> } }},
+  { $sort: { totalConfirmed: -<span class="term-num">1</span> } }
+])</span>
+[
+  { _id: <span class="term-str">'Workshop'</span>,  eventCount: <span class="term-num">7</span>, totalConfirmed: <span class="term-num">18</span> },
+  { _id: <span class="term-str">'Talk'</span>,      eventCount: <span class="term-num">4</span>, totalConfirmed: <span class="term-num">15</span> },
+  { _id: <span class="term-str">'Hackathon'</span>, eventCount: <span class="term-num">1</span>, totalConfirmed: <span class="term-num">9</span>  },
+  { _id: <span class="term-str">'Activity'</span>,  eventCount: <span class="term-num">3</span>, totalConfirmed: <span class="term-num">9</span>  },
+  { _id: <span class="term-str">'Meetup'</span>,    eventCount: <span class="term-num">1</span>, totalConfirmed: <span class="term-num">4</span>  }
+]</div>
+</div>
+<div class="caption">Fig. A.7 — Résultat du pipeline d'agrégation "Inscriptions par catégorie" exécuté directement dans <code>mongosh</code>, identique à celui affiché sur la page Analytics.</div>
+
+<h3>A.8 Lancement de l'application</h3>
+<div class="terminal">
+  <div class="titlebar">
+    <span class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></span>
+    <span class="title">emzoui@ubuntu-vm: ~/campus-event-manager</span>
+  </div>
+  <div class="body"><span class="term-prompt">emzoui@ubuntu-vm</span>:<span class="term-path">~/campus-event-manager</span>$ <span class="term-cmd">npm start</span>
+
+&gt; campus-event-manager@1.0.0 start
+&gt; node src/app.js
+
+<span class="term-info">[db]  connected to campus_events on mongodb://localhost:27017</span>
+<span class="term-info">[app] listening on http://localhost:3000</span>
+
+<span class="term-info">GET / 200 42 ms</span>
+<span class="term-info">GET /events?category=Workshop 200 28 ms</span>
+<span class="term-info">GET /events/66e1af8a3f2b1c9d4e5f6a10 200 31 ms</span>
+<span class="term-info">POST /events/66e1af8a3f2b1c9d4e5f6a10/registrations 302 18 ms</span>
+<span class="term-info">GET /users 200 24 ms</span>
+<span class="term-info">GET /analytics 200 65 ms</span></div>
+</div>
+<div class="caption">Fig. A.8 — Démarrage du serveur Express, connexion établie à MongoDB, log des requêtes HTTP reçues pendant les tests manuels des 5 pages.</div>
 
 </body>
 </html>
